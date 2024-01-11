@@ -1,21 +1,58 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+
+import Image from "next/image";
+import styles from "./page.module.css";
+
+import { invoke } from "@tauri-apps/api/tauri";
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from "@tauri-apps/api/notification";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [test, setTest] = useState(false);
+  const checkPermission = async () => {
+    let permissionGranted = await isPermissionGranted();
+    setTest(permissionGranted);
+    if (!permissionGranted) {
+      const permission = await requestPermission();
+      permissionGranted = permission === "granted";
+    }
+    if (permissionGranted) {
+      sendNotification("Tauri is awesome!");
+      sendNotification({ title: "TAURI", body: "Tauri is awesome!" });
+    }
+  };
+
+  const sendMessage = () => {
+    sendNotification("Tauri is awesome!");
+    sendNotification({ title: "TAURI", body: "Tauri is awesome!" });
+  };
+
+  useEffect(() => {
+    checkPermission();
+    invoke<string>("greet", { name: "Next.js" })
+      .then(console.log)
+      .catch(console.error);
+  }, []);
+
   return (
     <main className={styles.main}>
       <div className={styles.description}>
         <p>
-          Get started by editing&nbsp;
+          {String(test)}Get zcvxzvcxzvxczcvxzxcv by editing&nbsp;
           <code className={styles.code}>src/app/page.tsx</code>
         </p>
+        <button onClick={sendMessage}>노티 줘</button>
         <div>
           <a
             href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
             target="_blank"
             rel="noopener noreferrer"
           >
-            By{' '}
+            By{" "}
             <Image
               src="/vercel.svg"
               alt="Vercel Logo"
@@ -91,5 +128,5 @@ export default function Home() {
         </a>
       </div>
     </main>
-  )
+  );
 }
